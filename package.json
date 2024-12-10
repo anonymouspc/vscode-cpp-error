@@ -1,0 +1,47 @@
+{
+  "name": "cpp_problem",
+  "displayName": "C++ Problem",
+  "description": "cpp_problem",
+  "version": "1.0.0",
+  "publisher": "anonymous",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "activationEvents": ["onStartupFinished"],
+  "contributes": {
+    "viewsContainers": {
+      "activityBar": [
+        {
+          "id": "cppProblemViewContainer", 
+          "title": "C++ Problems", 
+          "icon": "resources/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "cppProblemViewContainer": [
+        {
+          "id": "cppProblems",
+          "name": "CPP Problems",
+          "when": "view == cppProblemViewContainer"
+        }
+      ]
+    },
+    "problemMatchers": [
+      {
+        "name": "gcc",
+        "fileLocation": ["relative", "${workspaceFolder}"],
+        "pattern": [
+          {
+            "regexp": "^([^:]+):(\\d+):(\\d+):(.*)$",
+            "file": 1,
+            "line": 2,
+            "code": 3,
+            "message": 4
+          }
+        ]
+      }
+    ]
+  },
+  "main": "./extension.js"
+}
