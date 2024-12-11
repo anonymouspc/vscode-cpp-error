@@ -21,8 +21,8 @@
     "views": {
       "error": [
         {
-          "id": "error-output",
-          "name": "错误输出"
+          "id": "error_info",
+          "name": "错误信息"
         }
       ]
     }
