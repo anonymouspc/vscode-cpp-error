@@ -1,7 +1,7 @@
 {
-  "name": "cpp_problem",
-  "displayName": "C++ Problem",
-  "description": "cpp_problem",
+  "name": "cpp_error",
+  "displayName": "C++ Error",
+  "description": "C++ Error",
   "version": "1.0.0",
   "publisher": "anonymous",
   "engines": {
@@ -10,38 +10,22 @@
   "activationEvents": ["onStartupFinished"],
   "contributes": {
     "viewsContainers": {
-      "activityBar": [
+      "activitybar": [
         {
-          "id": "cppProblemViewContainer", 
-          "title": "C++ Problems", 
-          "icon": "resources/icon.png"
+          "id": "error",
+          "title": "错误",
+          "icon": "resource/icon.svg"
         }
       ]
     },
     "views": {
-      "cppProblemViewContainer": [
+      "error": [
         {
-          "id": "cppProblems",
-          "name": "CPP Problems",
-          "when": "view == cppProblemViewContainer"
+          "id": "error-output",
+          "name": "错误输出"
         }
       ]
-    },
-    "problemMatchers": [
-      {
-        "name": "gcc",
-        "fileLocation": ["relative", "${workspaceFolder}"],
-        "pattern": [
-          {
-            "regexp": "^([^:]+):(\\d+):(\\d+):(.*)$",
-            "file": 1,
-            "line": 2,
-            "code": 3,
-            "message": 4
-          }
-        ]
-      }
-    ]
+    }
   },
   "main": "./extension.js"
 }
