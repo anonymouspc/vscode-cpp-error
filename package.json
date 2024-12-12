@@ -1,31 +1,36 @@
 {
-  "name": "cpp_error",
-  "displayName": "C++ Error",
-  "description": "C++ Error",
-  "version": "1.0.0",
-  "publisher": "anonymous",
-  "engines": {
-    "vscode": "^1.60.0"
-  },
-  "activationEvents": ["onStartupFinished"],
-  "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "error",
-          "title": "错误",
-          "icon": "resource/icon.svg"
-        }
-      ]
-    },
-    "views": {
-      "error": [
-        {
-          "id": "error_info",
-          "name": "错误信息"
-        }
-      ]
-    }
-  },
-  "main": "./extension.js"
+	"name": "cpp_error",
+	"displayName": "C++ Error",
+	"description": "C++ Error",
+	"version": "1.0.0",
+	"publisher": "anonymous",
+	"engines": {
+		"vscode": "^1.60.0"
+	},
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"contributes": {
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "error",
+					"title": "错误",
+					"icon": "resource/activitybar/icon.svg"
+				}
+			]
+		},
+		"views": {
+			"error": [
+				{
+					"id": "error_info",
+					"name": "错误信息"
+				}
+			]
+		}
+	},
+	"main": "./extension.js",
+	"__metadata": {
+		"size": 47158
+	}
 }
