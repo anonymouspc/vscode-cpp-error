@@ -107,31 +107,43 @@ function parse(line) {
         line.match(/\s+\|[\s^~]+/) || 
         String(line).trim() == "")
         return null;
+
+    let match = [];
     
     // In file included from path/to/file:12,
-    let match1 = line.match(/In file included from ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
-    if (match1)
-        return new ErrorEntry(match1[1], match1[2], 1, match1[0]);
+    match = line.match(/In file included from ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
+    if (match)
+        return new ErrorEntry(match[1], match[2], 1, match[0]);
 
     //                  from path/to/file:34:
-    let match2 = line.match(/                 from ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
-    if (match2)
-        return new ErrorEntry(match2[1], match2[2], 1, match2[0]);
+    match = line.match(/                 from ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
+    if (match)
+        return new ErrorEntry(match[1], match[2], 1, match[0]);
+
+    // In static member function '__builtin_memcpy',
+    match = line.match(/In .*/)
+    if (match)
+        return null;
+
+    //     inlined from 'constexpr function(args)' at path/to/file:12:34,
+    match = line.match(/    inlined from '(?:[^']*)' at ([A-Z]:[^:]*|[^:]+):(\d+):(\d+)(?:,|:)/)
+    if (match)
+        return new ErrorEntry(match[1], match[2], match[3], match[0]);
 
     // path/to/file:12:34: error: message...
-    let match3 = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(\d+):(.*)/); 
-    if (match3)
-        return new ErrorEntry(match3[1], match3[2], match3[3], match3[4]);
+    match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(\d+):(.*)/); 
+    if (match)
+        return new ErrorEntry(match[1], match[2], match[3], match[4]);
 
     // path/to/file:12: error: message...
-    let match4 = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(.*)/);
-    if (match4)
-        return new ErrorEntry(match4[1], match4[2], 1, match4[3]);
+    match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(.*)/);
+    if (match)
+        return new ErrorEntry(match[1], match[2], 1, match[3]);
 
     // path/to/file: In instantiation of...
-    let match5 = line.match(/([A-Z]:[^:]*|[^:]+):(.*)/);
-    if (match5)
-        return new ErrorEntry(match5[1], 1, 1, match5[2]);
+    match = line.match(/([A-Z]:[^:]*|[^:]+):(.*)/);
+    if (match)
+        return new ErrorEntry(match[1], 1, 1, match[2]);
 
     // Unrecognized
     console.log(`Failed to parse "${line}"`);
