@@ -7,6 +7,7 @@ function activate(context) {
     context.subscriptions.push(errorView);
     context.subscriptions.push(errorClear);
     context.subscriptions.push(errorUpdate);
+    context.subscriptions.push(errorFocus);
     context.subscriptions.push(errorJump);
 }
 
@@ -28,15 +29,15 @@ class ErrorList {
         return {
             label: errorEntry.message,
             command: {
-                command: "cpp_error.jump",
-                title: "跳转到指定位置",
+                command: 'cpp_error.jump',
+                title: '跳转到指定位置',
                 arguments: [errorEntry]
             },
-            iconPath: String(errorEntry.message).trim().startsWith("fatal error:") || 
-                      String(errorEntry.message).trim().startsWith("error:")       ? new vscode.ThemeIcon("error") :
-                      String(errorEntry.message).trim().startsWith("warning:")     ? new vscode.ThemeIcon("warning") :
-                      String(errorEntry.message).trim().startsWith("note:")        ? new vscode.ThemeIcon("info") :
-                                                                                     new vscode.ThemeIcon("circle-large-outline"),
+            iconPath: String(errorEntry.message).trim().startsWith('fatal error:') || 
+                      String(errorEntry.message).trim().startsWith('error:')       ? new vscode.ThemeIcon('error') :
+                      String(errorEntry.message).trim().startsWith('warning:')     ? new vscode.ThemeIcon('warning') :
+                      String(errorEntry.message).trim().startsWith('note:')        ? new vscode.ThemeIcon('chevron-right') :
+                                                                                     new vscode.ThemeIcon('ellipsis'),
             collapsibleState: vscode.TreeItemCollapsibleState.None, 
         };
     }
@@ -66,14 +67,14 @@ const errorView = vscode.window.createTreeView('error_info', {
 });
 
 const errorClear = vscode.tasks.onDidStartTask(e => {
-    if (e.execution && e.execution.task.name.includes("compile")) {
+    if (e.execution && e.execution.task.name.includes('compile')) {
         errorList.data = [];
         errorList.refresh();
     }
 });
 
-const errorUpdate = vscode.tasks.onDidEndTaskProcess(e => {
-    if (e.execution && e.execution.task.name.includes("compile")) {
+const errorUpdate = vscode.tasks.onDidEndTask(e => {
+    if (e.execution && e.execution.task.name.includes('compile')) {
         let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/${e.execution.task.name.split('.')[0]}/log.txt`;
         fs.readFileSync(filename, 'utf-8').split('\n').forEach(line => {
             let error = parse(line);
@@ -83,6 +84,14 @@ const errorUpdate = vscode.tasks.onDidEndTaskProcess(e => {
         errorList.refresh();
     }
 });
+
+const errorFocus = vscode.tasks.onDidEndTaskProcess(e => {
+    if (e.execution && e.execution.task.name.includes('link') && e.exitCode != 0)
+        if (errorList.data.length > 0)
+            vscode.commands.executeCommand('error_info.focus');
+});
+
+let errorRefocus = true;
 
 const errorJump = vscode.commands.registerCommand('cpp_error.jump', errorEntry => {
     let file = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/${errorEntry.file}`;
@@ -105,7 +114,7 @@ function parse(line) {
     if (line.match(/\s*[0-9]+\s*\|.*/) || 
         line.match(/\s*[\+]+\s*\|.*/) ||
         line.match(/\s+\|[\s^~]+/) || 
-        String(line).trim() == "")
+        String(line).trim() == '')
         return null;
 
     let match = [];
