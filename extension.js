@@ -32,11 +32,12 @@ class ErrorList {
                 title: "跳转到指定位置",
                 arguments: [errorEntry]
             },
-            iconPath: String(errorEntry.message).trim().startsWith("error:")   ? new vscode.ThemeIcon("error") :
-                      String(errorEntry.message).trim().startsWith("warning:") ? new vscode.ThemeIcon("warning") :
-                      String(errorEntry.message).trim().startsWith("note:")    ? new vscode.ThemeIcon("info") :
-                                                                                 new vscode.ThemeIcon("circle-large-outline"),
-            collapsibleState: vscode.TreeItemCollapsibleState.None,
+            iconPath: String(errorEntry.message).trim().startsWith("fatal error:") || 
+                      String(errorEntry.message).trim().startsWith("error:")       ? new vscode.ThemeIcon("error") :
+                      String(errorEntry.message).trim().startsWith("warning:")     ? new vscode.ThemeIcon("warning") :
+                      String(errorEntry.message).trim().startsWith("note:")        ? new vscode.ThemeIcon("info") :
+                                                                                     new vscode.ThemeIcon("circle-large-outline"),
+            collapsibleState: vscode.TreeItemCollapsibleState.None, 
         };
     }
 
@@ -89,6 +90,7 @@ const errorJump = vscode.commands.registerCommand('cpp_error.jump', errorEntry =
         file = errorEntry.file;
     
     vscode.window.showTextDocument(vscode.Uri.file(file), { preview: false }).then(editor => {
+        console.log(`jump to ${file}->${errorEntry.line}->${errorEntry.column}`);
         const position = new vscode.Position(errorEntry.line-1, errorEntry.column-1);
         editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
         editor.selection = new vscode.Selection(position, position);
@@ -107,25 +109,30 @@ function parse(line) {
         return null;
     
     // In file included from path/to/file:12,
-    let match1 = line.match(/In file included from ([^:]*):(\d+)(?:,|:)/)
+    let match1 = line.match(/In file included from ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
     if (match1)
         return new ErrorEntry(match1[1], match1[2], 1, match1[0]);
 
     //                  from path/to/file:34:
-    let match2 = line.match(/                 from ([^:]*):(\d+)(?:,|:)/)
+    let match2 = line.match(/                 from ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
     if (match2)
         return new ErrorEntry(match2[1], match2[2], 1, match2[0]);
 
     // path/to/file:12:34: error: message...
-    let match3 = line.match(/([^:]*):(\d+):(\d+):(.*)/); 
+    let match3 = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(\d+):(.*)/); 
     if (match3)
         return new ErrorEntry(match3[1], match3[2], match3[3], match3[4]);
 
-    // path/to/file: In instantiation of...
-    let match4 = line.match(/([^:]*):(.*)/);
+    // path/to/file:12: error: message...
+    let match4 = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(.*)/);
     if (match4)
-        return new ErrorEntry(match4[1], 1, 1, match4[2]);
+        return new ErrorEntry(match4[1], match4[2], 1, match4[3]);
+
+    // path/to/file: In instantiation of...
+    let match5 = line.match(/([A-Z]:[^:]*|[^:]+):(.*)/);
+    if (match5)
+        return new ErrorEntry(match5[1], 1, 1, match5[2]);
 
     // Unrecognized
-    console.log(`Failed to parse ${line}`);
+    console.log(`Failed to parse "${line}"`);
 }
