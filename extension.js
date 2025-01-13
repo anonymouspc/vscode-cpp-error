@@ -99,7 +99,6 @@ const errorJump = vscode.commands.registerCommand('cpp_error.jump', errorEntry =
         file = errorEntry.file;
     
     vscode.window.showTextDocument(vscode.Uri.file(file), { preview: false }).then(editor => {
-        console.log(`jump to ${file}->${errorEntry.line}->${errorEntry.column}`);
         const position = new vscode.Position(errorEntry.line-1, errorEntry.column-1);
         editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
         editor.selection = new vscode.Selection(position, position);
