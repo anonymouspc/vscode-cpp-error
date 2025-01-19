@@ -91,22 +91,21 @@ const errorFocus = vscode.tasks.onDidEndTaskProcess(e => {
             vscode.commands.executeCommand('error_info.focus');
 });
 
-let errorRefocus = true;
-
 const errorJump = vscode.commands.registerCommand('cpp_error.jump', errorEntry => {
     let file = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/${errorEntry.file}`;
     if (!fs.existsSync(file))
         file = errorEntry.file;
     
     vscode.window.showTextDocument(vscode.Uri.file(file), { preview: false }).then(editor => {
-        console.log(`jump to ${file}->${errorEntry.line}->${errorEntry.column}`);
         const position = new vscode.Position(errorEntry.line-1, errorEntry.column-1);
         editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
         editor.selection = new vscode.Selection(position, position);
     });
 });
 
-function parse(line) {  
+function parse(line) { 
+    line = line.replace(/\x1b\[[0-9;]+m/g, '');
+
     // 123 | source.code(raw)
     // +++ |+#include <iostream>
     //     |          ^~~~~~~~~~
