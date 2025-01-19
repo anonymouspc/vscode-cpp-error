@@ -104,7 +104,7 @@ const errorJump = vscode.commands.registerCommand('cpp_error.jump', errorEntry =
 });
 
 function parse(line) { 
-    line = line.replace(/\x1b\[[0-9;]+m/g, '');
+    line = line.replace(/\x1b\[[0-9;]*[mK]/g, '')
 
     // 123 | source.code(raw)
     // +++ |+#include <iostream>
