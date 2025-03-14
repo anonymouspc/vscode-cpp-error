@@ -33,9 +33,5 @@
 		"type": "git",
 		"url": "https://github.com/AnonymousPC/vscode_cpp_error"
 	},
-	"main": "./extension.js",
-	"__metadata": {
-		"size": 10196,
-		"installedTimestamp": 1741970193493
-	}
+	"main": "./extension.js"
 }
