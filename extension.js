@@ -1,6 +1,5 @@
 const vscode = require('vscode');
 const fs = require('fs');
-const { exec } = require('child_process');
 
 function activate(context) {
 
@@ -104,7 +103,7 @@ const errorJump = vscode.commands.registerCommand('cpp_error.jump', errorEntry =
 });
 
 function parse(line) { 
-    line = line.replace(/\x1b\[[0-9;]*[mK]/g, '')
+    line = line.replace(/\x1b\[[0-9;]+m/g, '');
 
     // 123 | source.code(raw)
     // +++ |+#include <iostream>
