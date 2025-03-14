@@ -1,7 +1,7 @@
 {
 	"name": "vscode-cpp-error",
-	"displayName": "vscode_cpp_error",
-	"description": "vscode_cpp_error",
+	"displayName": "vscode-cpp-error",
+	"description": "vscode-cpp-error",
 	"version": "1.0.0",
 	"publisher": "anonymouspc",
 	"engines": {
@@ -29,12 +29,13 @@
 			]
 		}
 	},
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/AnonymousPC/vscode_cpp_highlight"
-    },
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/AnonymousPC/vscode_cpp_error"
+	},
 	"main": "./extension.js",
 	"__metadata": {
-		"size": 47158
+		"size": 10196,
+		"installedTimestamp": 1741970193493
 	}
 }
