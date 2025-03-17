@@ -97,7 +97,7 @@ const errorJump = vscode.commands.registerCommand('cpp_error.jump', errorEntry =
         file = errorEntry.file;
     
     vscode.window.showTextDocument(vscode.Uri.file(file), { preview: false }).then(editor => {
-        const position = new vscode.Position(Math.max(errorEntry.line-1, 0), Math.max(errorEntry.column-1, 0));
+        const position = new vscode.Position(errorEntry.line-1, Math.max(errorEntry.column-1, 0));
         editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
         editor.selection = new vscode.Selection(position, position);
     });
