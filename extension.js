@@ -1,6 +1,5 @@
 const vscode = require('vscode');
 const fs = require('fs');
-const math = require('Math')
 
 function activate(context) {
 
