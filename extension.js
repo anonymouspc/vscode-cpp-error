@@ -84,7 +84,7 @@ const errorUpdate = vscode.tasks.onDidEndTask(e => {
     }
 });
 
-const errorFocus = vscode.tasks.onDidEndTaskProcess(e => {
+const errorFocus = vscode.tasks.onDidEndTask(e => {
     if (e.execution && e.execution.task.name.includes('build') && e.exitCode != 0)
         if (errorList.data.length > 0)
             vscode.commands.executeCommand('error_info.focus');
