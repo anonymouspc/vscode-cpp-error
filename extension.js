@@ -66,14 +66,14 @@ const errorView = vscode.window.createTreeView('error_info', {
 });
 
 const errorClear = vscode.tasks.onDidStartTask(e => {
-    if (e.execution && e.execution.task.name.includes('compile')) {
+    if (e.execution && e.execution.task.name.includes('build')) {
         errorList.data = [];
         errorList.refresh();
     }
 });
 
 const errorUpdate = vscode.tasks.onDidEndTask(e => {
-    if (e.execution && e.execution.task.name.includes('compile')) {
+    if (e.execution && e.execution.task.name.includes('build')) {
         let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/${e.execution.task.name.split('.')[0]}/log.txt`;
         fs.readFileSync(filename, 'utf-8').split('\n').forEach(line => {
             let error = parse(line);
@@ -85,7 +85,7 @@ const errorUpdate = vscode.tasks.onDidEndTask(e => {
 });
 
 const errorFocus = vscode.tasks.onDidEndTaskProcess(e => {
-    if (e.execution && e.execution.task.name.includes('link') && e.exitCode != 0)
+    if (e.execution && e.execution.task.name.includes('build') && e.exitCode != 0)
         if (errorList.data.length > 0)
             vscode.commands.executeCommand('error_info.focus');
 });
