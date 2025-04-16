@@ -67,6 +67,8 @@ const errorView = vscode.window.createTreeView('error_info', {
 
 const errorClear = vscode.tasks.onDidStartTask(e => {
     if (e.execution && e.execution.task.name.includes('build')) {
+        let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/${e.execution.task.name.split('.')[0]}/log.txt`;
+        fs.writeFileSync(filename, "", 'utf-8')
         errorList.data = [];
         errorList.refresh();
     }
