@@ -37,7 +37,7 @@ class ErrorList {
                       String(errorEntry.message).trim().startsWith('warning:')     ? new vscode.ThemeIcon('warning') :
                       String(errorEntry.message).trim().startsWith('note:')        ? new vscode.ThemeIcon('chevron-right') :
                                                                                      new vscode.ThemeIcon('ellipsis'),
-            collapsibleState: vscode.TreeItemCollapsibleState.None, 
+            collapsibleState: vscode.TreeItemCollapsibleState.None
         };
     }
 
@@ -67,7 +67,7 @@ const errorView = vscode.window.createTreeView('error_info', {
 
 const errorClear = vscode.tasks.onDidStartTask(e => {
     if (e.execution && e.execution.task.name.includes('build')) {
-        let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/${e.execution.task.name.split('.')[0]}/log.txt`;
+        let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/log.txt`;
         fs.writeFileSync(filename, "", 'utf-8')
         errorList.data = [];
         errorList.refresh();
@@ -76,7 +76,7 @@ const errorClear = vscode.tasks.onDidStartTask(e => {
 
 const errorUpdate = vscode.tasks.onDidEndTask(e => {
     if (e.execution && e.execution.task.name.includes('build')) {
-        let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/${e.execution.task.name.split('.')[0]}/log.txt`;
+        let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/log.txt`;
         fs.readFileSync(filename, 'utf-8').split('\n').forEach(line => {
             let error = parse(line);
             if (error)
