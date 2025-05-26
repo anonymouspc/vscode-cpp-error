@@ -1,37 +1,38 @@
 {
-	"name": "vscode-cpp-error",
-	"displayName": "vscode-cpp-error",
-	"description": "vscode-cpp-error",
-	"version": "1.0.0",
-	"publisher": "anonymouspc",
-	"engines": {
-		"vscode": "^1.60.0"
-	},
-	"activationEvents": [
-		"onStartupFinished"
-	],
-	"contributes": {
-		"viewsContainers": {
-			"activitybar": [
-				{
-					"id": "error",
-					"title": "错误",
-					"icon": "resource/activitybar/icon.svg"
-				}
-			]
-		},
-		"views": {
-			"error": [
-				{
-					"id": "error_info",
-					"name": "错误信息"
-				}
-			]
-		}
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/AnonymousPC/vscode_cpp_error"
-	},
-	"main": "./extension.js"
+    "name": "vscode-cpp-error",
+    "displayName": "vscode-cpp-error",
+    "description": "vscode-cpp-error",
+    "version": "1.0.0",
+    "publisher": "anonymouspc",
+    "engines": {
+        "vscode": "^1.60.0"
+    },
+    "activationEvents": [
+        "onStartupFinished"
+    ],
+    "contributes": {
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "error",
+                    "title": "error",
+                    "icon": "resource/activitybar/icon.svg"
+                }
+            ]
+        },
+        "views": {
+            "error": [
+                {
+                    "id": "errorView",
+                    "name": "errorView",
+                    "icon": "resource/activitybar/icon.svg"
+                }
+            ]
+        }
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AnonymousPC/vscode-cpp-error"
+    },
+    "main": "./extension.js"
 }

@@ -2,12 +2,11 @@ const vscode = require('vscode');
 const fs = require('fs');
 
 function activate(context) {
-
     context.subscriptions.push(errorView);
-    context.subscriptions.push(errorClear);
     context.subscriptions.push(errorUpdate);
-    context.subscriptions.push(errorFocus);
     context.subscriptions.push(errorJump);
+    context.subscriptions.push(errorAutoUpdate);
+    context.subscriptions.push(errorAutoFocus)
 }
 
 function deactivate() {}
@@ -16,6 +15,9 @@ module.exports = {
     activate,
     deactivate
 }
+
+
+
 
 class ErrorList {
     constructor() {
@@ -28,21 +30,24 @@ class ErrorList {
         return {
             label: errorEntry.message,
             command: {
-                command: 'cpp_error.jump',
-                title: '跳转到指定位置',
+                command: 'errorJump',
                 arguments: [errorEntry]
             },
-            iconPath: String(errorEntry.message).trim().startsWith('fatal error:') || 
-                      String(errorEntry.message).trim().startsWith('error:')       ? new vscode.ThemeIcon('error') :
-                      String(errorEntry.message).trim().startsWith('warning:')     ? new vscode.ThemeIcon('warning') :
-                      String(errorEntry.message).trim().startsWith('note:')        ? new vscode.ThemeIcon('chevron-right') :
-                                                                                     new vscode.ThemeIcon('ellipsis'),
-            collapsibleState: vscode.TreeItemCollapsibleState.None
-        };
+            iconPath: errorEntry.message.trim().startsWith('fatal error:') || 
+                      errorEntry.message.trim().startsWith('error:')       ? new vscode.ThemeIcon('error') :
+                      errorEntry.message.trim().startsWith('warning:')     ? new vscode.ThemeIcon('warning') :
+                      errorEntry.message.trim().startsWith('note:')        ? new vscode.ThemeIcon('chevron-right') :
+                                                                             new vscode.ThemeIcon('ellipsis'),
+            collapsibleState: errorEntry.detail.length != 0 ? vscode.TreeItemCollapsibleState.Collapsed :
+                                                              vscode.TreeItemCollapsibleState.None
+        }
     }
 
-    getChildren() {
-        return this.data;
+    getChildren(errorEntry) {
+        if (errorEntry == undefined) // Top tree.
+            return this.data;
+        else
+            return errorEntry.detail;
     }
 
     refresh() {
@@ -56,45 +61,27 @@ class ErrorEntry {
       this.line = line;
       this.column = column;
       this.message = message;
+      this.detail = [];
   }
 }
 
+
+
 const errorList = new ErrorList();
 
-const errorView = vscode.window.createTreeView('error_info', {
+const errorView = vscode.window.createTreeView('errorView', {
     treeDataProvider: errorList
 });
 
-const errorClear = vscode.tasks.onDidStartTask(e => {
-    if (e.execution && e.execution.task.name.includes('build')) {
-        let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/log.txt`;
-        fs.writeFileSync(filename, "", 'utf-8')
-        errorList.data = [];
-        errorList.refresh();
-    }
+const errorUpdate = vscode.commands.registerCommand('errorUpdate', () => {
+    parseErrorList();
+    formatErrorList();
+    errorList.refresh();
 });
 
-const errorUpdate = vscode.tasks.onDidEndTask(e => {
-    if (e.execution && e.execution.task.name.includes('build')) {
-        let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/log.txt`;
-        fs.readFileSync(filename, 'utf-8').split('\n').forEach(line => {
-            let error = parse(line);
-            if (error)
-                errorList.data.push(error);
-        });
-        errorList.refresh();
-    }
-});
-
-const errorFocus = vscode.tasks.onDidEndTask(e => {
-    if (e.execution && e.execution.task.name.includes('build') && e.exitCode != 0)
-        if (errorList.data.length > 0)
-            vscode.commands.executeCommand('error_info.focus');
-});
-
-const errorJump = vscode.commands.registerCommand('cpp_error.jump', errorEntry => {
+const errorJump = vscode.commands.registerCommand('errorJump', errorEntry => {
     let file = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/${errorEntry.file}`;
-    if (!fs.existsSync(file))
+    if (!fs.existsSync(file)) // Not a relative path
         file = errorEntry.file;
     
     vscode.window.showTextDocument(vscode.Uri.file(file), { preview: false }).then(editor => {
@@ -104,7 +91,36 @@ const errorJump = vscode.commands.registerCommand('cpp_error.jump', errorEntry =
     });
 });
 
-function parse(line) { 
+const errorAutoUpdate = errorView.onDidChangeVisibility(view => {
+    if (view.visible)
+        vscode.commands.executeCommand('errorUpdate')
+});
+
+const errorAutoFocus = vscode.tasks.onDidEndTask(e => {
+    if (e.execution && e.execution.task.name.includes('build') && e.exitCode != 0) {
+        vscode.commands.executeCommand('errorUpdate');
+        if (errorList.data.length > 0)
+            vscode.commands.executeCommand('errorView.focus');
+    }
+});
+
+
+
+
+
+
+function parseErrorList() {
+    errorList.data = []
+    let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/log.txt`;
+    fs.readFileSync(filename, 'utf-8').split('\n').forEach(line => {
+        let error = parseErrorLine(line);
+        if (error != null)
+            errorList.data.push(error);
+    });
+}
+
+function parseErrorLine(line) { 
+    // Remove color
     line = line.replace(/\x1b\[[0-9;]+m/g, '');
 
     // 123 | source.code(raw)
@@ -156,4 +172,38 @@ function parse(line) {
 
     // Unrecognized
     console.log(`Failed to parse "${line}"`);
+    return null
+}
+
+function formatErrorList() {
+    let index           = 0;
+    let target_index    = 0;
+    let prefix_indecies = [];
+
+    while (index < errorList.data.length) {
+        if (errorList.data[index].message.trim().startsWith("fatal error:") ||
+            errorList.data[index].message.trim().startsWith("error:")       ||
+            errorList.data[index].message.trim().startsWith("warning:")) {
+                if (prefix_indecies.length != 0) {
+                    for (prefix_index of prefix_indecies) {
+                        errorList.data[index].detail.push(errorList.data[prefix_index]);
+                        errorList.data.splice(prefix_index, 1);
+                        --index;
+                        prefix_indecies.forEach(idx => { --idx; });
+                    }
+                    prefix_indecies = [];
+                }
+                target_index = index;
+            }
+                
+        else if (errorList.data[index].message.trim().startsWith("note:")) {
+            errorList.data[target_index].detail.push(errorList.data[index]);
+            errorList.data.splice(index, 1);
+            --index;
+        }
+        else 
+            prefix_indecies.push(index);
+
+        ++index;
+    }
 }
