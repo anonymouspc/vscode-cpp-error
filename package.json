@@ -16,7 +16,7 @@
                 {
                     "id": "error",
                     "title": "error",
-                    "icon": "resource/activitybar/icon.svg"
+                    "icon": "./resource/activitybar/icon.svg"
                 }
             ]
         },
@@ -25,7 +25,7 @@
                 {
                     "id": "errorView",
                     "name": "errorView",
-                    "icon": "resource/activitybar/icon.svg"
+                    "icon": "./resource/activitybar/icon.svg"
                 }
             ]
         }

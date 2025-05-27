@@ -36,8 +36,8 @@ class ErrorList {
             iconPath: errorEntry.message.trim().startsWith('fatal error:') || 
                       errorEntry.message.trim().startsWith('error:')       ? new vscode.ThemeIcon('error') :
                       errorEntry.message.trim().startsWith('warning:')     ? new vscode.ThemeIcon('warning') :
-                      errorEntry.message.trim().startsWith('note:')        ? new vscode.ThemeIcon('chevron-right') :
-                                                                             new vscode.ThemeIcon('ellipsis'),
+                      errorEntry.message.trim().startsWith('note:')        ? new vscode.ThemeIcon('more') :
+                                                                             new vscode.ThemeIcon('more'),
             collapsibleState: errorEntry.detail.length != 0 ? vscode.TreeItemCollapsibleState.Collapsed :
                                                               vscode.TreeItemCollapsibleState.None
         }
@@ -180,18 +180,25 @@ function formatErrorList() {
     let target_index    = 0;
     let prefix_indecies = [];
 
+    console.log("formatErrorList.start");
     while (index < errorList.data.length) {
         if (errorList.data[index].message.trim().startsWith("fatal error:") ||
             errorList.data[index].message.trim().startsWith("error:")       ||
             errorList.data[index].message.trim().startsWith("warning:")) {
                 if (prefix_indecies.length != 0) {
+                    console.log(`start reordering: index = ${index}, prefix_indecies = ${prefix_indecies}`)
                     for (prefix_index of prefix_indecies) {
+                        console.log(`prepare to push ${prefix_index} into ${index}->detail`)
+                        console.log(`as to push ${errorList.data[prefix_index].message} into ${errorList.data[index].message}->detail`)
+
                         errorList.data[index].detail.push(errorList.data[prefix_index]);
                         errorList.data.splice(prefix_index, 1);
                         --index;
-                        prefix_indecies.forEach(idx => { --idx; });
+                        prefix_indecies.forEach((_, i) => { prefix_indecies[i] = prefix_indecies[i]-1; });
                     }
                     prefix_indecies = [];
+
+                    console.log('\n\n\n')
                 }
                 target_index = index;
             }
