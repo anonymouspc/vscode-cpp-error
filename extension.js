@@ -121,7 +121,7 @@ function parseErrorList() {
 
 function parseErrorLine(line) { 
     // Remove color
-    line = line.replace(/\x1b\[[0-9;]+m/g, '');
+    line = line.replace(/\x1b\[([0-9;]*m|K)/g, '');
 
     // 123 | source.code(raw)
     // +++ |+#include <iostream>
@@ -180,16 +180,12 @@ function formatErrorList() {
     let target_index    = 0;
     let prefix_indecies = [];
 
-    console.log("formatErrorList.start");
     while (index < errorList.data.length) {
         if (errorList.data[index].message.trim().startsWith("fatal error:") ||
             errorList.data[index].message.trim().startsWith("error:")       ||
             errorList.data[index].message.trim().startsWith("warning:")) {
                 if (prefix_indecies.length != 0) {
-                    console.log(`start reordering: index = ${index}, prefix_indecies = ${prefix_indecies}`)
                     for (prefix_index of prefix_indecies) {
-                        console.log(`prepare to push ${prefix_index} into ${index}->detail`)
-                        console.log(`as to push ${errorList.data[prefix_index].message} into ${errorList.data[index].message}->detail`)
 
                         errorList.data[index].detail.push(errorList.data[prefix_index]);
                         errorList.data.splice(prefix_index, 1);
@@ -197,8 +193,6 @@ function formatErrorList() {
                         prefix_indecies.forEach((_, i) => { prefix_indecies[i] = prefix_indecies[i]-1; });
                     }
                     prefix_indecies = [];
-
-                    console.log('\n\n\n')
                 }
                 target_index = index;
             }
