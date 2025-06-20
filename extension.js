@@ -156,17 +156,17 @@ function parseErrorLine(line) {
         return new ErrorEntry(match[1], match[2], match[3], match[0]);
 
     // path/to/file:12:34: error: message...
-    match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(\d+):(.*)/); 
+    match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(\d+): (.*)/); 
     if (match)
         return new ErrorEntry(match[1], match[2], match[3], match[4]);
 
     // path/to/file:12: error: message...
-    match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(.*)/);
+    match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+): (.*)/);
     if (match)
         return new ErrorEntry(match[1], match[2], 1, match[3]);
 
     // path/to/file: In instantiation of...
-    match = line.match(/([A-Z]:[^:]*|[^:]+):(.*)/);
+    match = line.match(/([A-Z]:[^:]*|[^:]+): (.*)/);
     if (match)
         return new ErrorEntry(match[1], 1, 1, match[2]);
 
