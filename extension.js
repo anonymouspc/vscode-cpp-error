@@ -138,12 +138,17 @@ function parseErrorLine(line) {
     // In file included from path/to/file:12,
     match = line.match(/In file included from ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
     if (match)
-        return new ErrorEntry(match[1], match[2], 1, match[0]);
+        return new ErrorEntry(file=match[1], line=match[2], column=1, message=match[0]);
 
     //                  from path/to/file:34:
     match = line.match(/                 from ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
     if (match)
-        return new ErrorEntry(match[1], match[2], 1, match[0]);
+        return new ErrorEntry(file=match[1], line=match[2], column=1, message=match[0]);
+
+    // of module my.module:partition, imported at path/to/file:56
+    match = line.match(/of module [\w\.:]+, imported at ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
+    if (match)
+        return new ErrorEntry(file=match[1], line=match[2], column=1, message=match[0]);
 
     // In static member function '__builtin_memcpy',
     match = line.match(/In .*/)
@@ -153,22 +158,22 @@ function parseErrorLine(line) {
     //     inlined from 'constexpr function(args)' at path/to/file:12:34,
     match = line.match(/    inlined from '(?:[^']*)' at ([A-Z]:[^:]*|[^:]+):(\d+):(\d+)(?:,|:)/)
     if (match)
-        return new ErrorEntry(match[1], match[2], match[3], match[0]);
+        return new ErrorEntry(file=match[1], line=match[2], column=match[3], message=match[0]);
 
     // path/to/file:12:34: error: message...
     match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(\d+): (.*)/); 
     if (match)
-        return new ErrorEntry(match[1], match[2], match[3], match[4]);
+        return new ErrorEntry(file=match[1], line=match[2], column=match[3], message=match[4]);
 
     // path/to/file:12: error: message...
     match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+): (.*)/);
     if (match)
-        return new ErrorEntry(match[1], match[2], 1, match[3]);
+        return new ErrorEntry(file=match[1], line=match[2], column=1, message=match[3]);
 
     // path/to/file: In instantiation of...
     match = line.match(/([A-Z]:[^:]*|[^:]+): (.*)/);
     if (match)
-        return new ErrorEntry(match[1], 1, 1, match[2]);
+        return new ErrorEntry(file=match[1], line=1, column=1, message=match[2]);
 
     // Unrecognized
     console.log(`Failed to parse "${line}"`);
@@ -176,35 +181,34 @@ function parseErrorLine(line) {
 }
 
 function formatErrorList() {
-    let index           = 0;
-    let target_index    = 0;
-    let prefix_indecies = [];
+    let current_index  = 0;
+    let pushable_index = 0;
+    let prefices       = [];
 
-    while (index < errorList.data.length) {
-        if (errorList.data[index].message.trim().startsWith("fatal error:") ||
-            errorList.data[index].message.trim().startsWith("error:")       ||
-            errorList.data[index].message.trim().startsWith("warning:")) {
-                if (prefix_indecies.length != 0) {
-                    for (prefix_index of prefix_indecies) {
-
-                        errorList.data[index].detail.push(errorList.data[prefix_index]);
-                        errorList.data.splice(prefix_index, 1);
-                        --index;
-                        prefix_indecies.forEach((_, i) => { prefix_indecies[i] = prefix_indecies[i]-1; });
-                    }
-                    prefix_indecies = [];
-                }
-                target_index = index;
+    while (current_index < errorList.data.length) {
+        if (errorList.data[current_index].message.trim().startsWith('fatal error:') ||
+            errorList.data[current_index].message.trim().startsWith('error:')       ||
+            errorList.data[current_index].message.trim().startsWith('warning:')) {
+                pushable_index = current_index;
+                for (prefix of prefices)
+                    errorList.data[pushable_index].detail.push(prefix);
+                prefices = []
             }
                 
-        else if (errorList.data[index].message.trim().startsWith("note:")) {
-            errorList.data[target_index].detail.push(errorList.data[index]);
-            errorList.data.splice(index, 1);
-            --index;
+        else if (errorList.data[current_index].message.trim().startsWith('note:')) {
+            for (prefix of prefices)
+                errorList.data[current_index].detail.push(prefix);
+            prefices = []
+            errorList.data[pushable_index].detail.push(errorList.data[current_index]);
+            errorList.data.splice(current_index, 1);
+            --current_index;
         }
-        else 
-            prefix_indecies.push(index);
+        else {
+            prefices.push(errorList.data[current_index]);
+            errorList.data.splice(current_index, 1);
+            --current_index;
+        }
 
-        ++index;
+        ++current_index;
     }
 }
