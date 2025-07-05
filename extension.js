@@ -111,12 +111,13 @@ const errorAutoFocus = vscode.tasks.onDidEndTask(e => {
 
 function parseErrorList() {
     errorList.data = []
-    let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/log.txt`;
-    fs.readFileSync(filename, 'utf-8').split('\n').forEach(line => {
-        let error = parseErrorLine(line);
-        if (error != null)
-            errorList.data.push(error);
-    });
+    let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/.log`;
+    if (fs.existsSync(filename))
+        fs.readFileSync(filename, 'utf-8').split('\n').forEach(line => {
+            let error = parseErrorLine(line);
+            if (error != null)
+                errorList.data.push(error);
+        })
 }
 
 function parseErrorLine(line) { 
