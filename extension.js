@@ -97,7 +97,7 @@ const errorAutoUpdate = errorView.onDidChangeVisibility(view => {
 });
 
 const errorAutoFocus = vscode.tasks.onDidEndTask(e => {
-    if (e.execution && e.execution.task.name.includes('build') && e.exitCode != 0) {
+    if (e.exitCode != 0) {
         vscode.commands.executeCommand('errorUpdate');
         if (errorList.data.length > 0)
             vscode.commands.executeCommand('errorView.focus');
