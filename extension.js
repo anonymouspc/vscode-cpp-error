@@ -33,11 +33,12 @@ class ErrorList {
                 command: 'errorJump',
                 arguments: [errorEntry]
             },
-            iconPath: errorEntry.message.trim().startsWith('fatal error:') || 
-                      errorEntry.message.trim().startsWith('error:')       ? new vscode.ThemeIcon('error') :
-                      errorEntry.message.trim().startsWith('warning:')     ? new vscode.ThemeIcon('warning') :
-                      errorEntry.message.trim().startsWith('note:')        ? new vscode.ThemeIcon('more') :
-                                                                             new vscode.ThemeIcon('more'),
+            iconPath: errorEntry.message.trim().startsWith('internal compiler error:') ||
+                      errorEntry.message.trim().startsWith('fatal error:')             || 
+                      errorEntry.message.trim().startsWith('error:')                   ? new vscode.ThemeIcon('error') :
+                      errorEntry.message.trim().startsWith('warning:')                 ? new vscode.ThemeIcon('warning') :
+                      errorEntry.message.trim().startsWith('note:')                    ? new vscode.ThemeIcon('more') :
+                                                                                         new vscode.ThemeIcon('more'),
             collapsibleState: errorEntry.detail.length != 0 ? vscode.TreeItemCollapsibleState.Collapsed :
                                                               vscode.TreeItemCollapsibleState.None
         }
@@ -111,7 +112,7 @@ const errorAutoFocus = vscode.tasks.onDidEndTask(e => {
 
 function parseErrorList() {
     errorList.data = []
-    let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/bin/cache/compile_outputs.txt`;
+    let filename = `${vscode.workspace.workspaceFolders[0].uri.fsPath}/binary/cache/compile_outputs.txt`;
     if (fs.existsSync(filename))
         fs.readFileSync(filename, 'utf-8').split('\n').forEach(line => {
             let error = parseErrorLine(line);
@@ -150,31 +151,31 @@ function parseErrorLine(line) {
     match = line.match(/of module [\w\.:]+, imported at ([A-Z]:[^:]*|[^:]+):(\d+)(?:,|:)/)
     if (match)
         return new ErrorEntry(file=match[1], line=match[2], column=1, message=match[0]);
-
-    // In static member function '__builtin_memcpy',
-    match = line.match(/In .*/)
-    if (match)
-        return null;
-
+    
     //     inlined from 'constexpr function(args)' at path/to/file:12:34,
     match = line.match(/    inlined from '(?:[^']*)' at ([A-Z]:[^:]*|[^:]+):(\d+):(\d+)(?:,|:)/)
     if (match)
         return new ErrorEntry(file=match[1], line=match[2], column=match[3], message=match[0]);
 
-    // path/to/file:12:34: error: message...
+    // path/to/file:12:34: message...
     match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+):(\d+): (.*)/); 
     if (match)
         return new ErrorEntry(file=match[1], line=match[2], column=match[3], message=match[4]);
 
-    // path/to/file:12: error: message...
+    // path/to/file:12: message...
     match = line.match(/([A-Z]:[^:]*|[^:]+):(\d+): (.*)/);
     if (match)
         return new ErrorEntry(file=match[1], line=match[2], column=1, message=match[3]);
 
-    // path/to/file: In instantiation of...
+    // path/to/file: message...
     match = line.match(/([A-Z]:[^:]*|[^:]+): (.*)/);
     if (match)
         return new ErrorEntry(file=match[1], line=1, column=1, message=match[2]);
+
+    // message...
+    match = line.match(/.*/);
+    if (match)
+        return new ErrorEntry(file="", line=1, column=1, message=match[0]);
 
     // Unrecognized
     console.log(`Failed to parse "${line}"`);
@@ -187,8 +188,9 @@ function formatErrorList() {
     let prefices       = [];
 
     while (current_index < errorList.data.length) {
-        if (errorList.data[current_index].message.trim().startsWith('fatal error:') ||
-            errorList.data[current_index].message.trim().startsWith('error:')       ||
+        if (errorList.data[current_index].message.trim().startsWith('internal compiler error:') ||
+            errorList.data[current_index].message.trim().startsWith('fatal error:')             ||
+            errorList.data[current_index].message.trim().startsWith('error:')                   ||
             errorList.data[current_index].message.trim().startsWith('warning:')) {
                 pushable_index = current_index;
                 for (prefix of prefices)
@@ -203,6 +205,15 @@ function formatErrorList() {
             errorList.data[pushable_index].detail.push(errorList.data[current_index]);
             errorList.data.splice(current_index, 1);
             --current_index;
+        }
+        else if (errorList.data[current_index].file.trim() == ""    &&
+                 current_index < errorList.data.length              &&
+                 errorList.data[current_index+1].message.trim() == "") {
+            errorList.data[current_index].file   = errorList.data[current_index+1].file
+            errorList.data[current_index].line   = errorList.data[current_index+1].line
+            errorList.data[current_index].column = errorList.data[current_index+1].column
+            errorList.data.splice(current_index+1, 1)
+            --current_index
         }
         else {
             prefices.push(errorList.data[current_index]);
